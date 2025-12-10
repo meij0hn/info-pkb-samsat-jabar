@@ -52,6 +52,40 @@ function validateColorCode(color: string): boolean {
     return /^[1-5]$/.test(color);
 }
 
+// ============ TURNSTILE VERIFICATION ============
+async function verifyTurnstileToken(token: string, ip: string): Promise<{ success: boolean; error?: string }> {
+    const secretKey = process.env.TURNSTILE_SECRET_KEY;
+
+    if (!secretKey) {
+        return { success: false, error: 'Konfigurasi keamanan tidak lengkap' };
+    }
+
+    try {
+        const formData = new URLSearchParams();
+        formData.append('secret', secretKey);
+        formData.append('response', token);
+        formData.append('remoteip', ip);
+
+        const response = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: formData.toString(),
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+            return { success: true };
+        } else {
+            return { success: false, error: 'Verifikasi keamanan gagal. Silakan refresh halaman.' };
+        }
+    } catch {
+        return { success: false, error: 'Gagal memverifikasi keamanan' };
+    }
+}
+
 // ============ MAIN HANDLER ============
 export async function GET(request: Request) {
     // Get client IP for rate limiting
@@ -77,6 +111,17 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
     const plate = searchParams.get('plate');
     const colorCode = searchParams.get('color') || '1';
+    const turnstileToken = searchParams.get('cf-turnstile-response');
+
+    // Verify Turnstile token
+    if (!turnstileToken) {
+        return NextResponse.json({ error: 'Verifikasi keamanan diperlukan' }, { status: 400 });
+    }
+
+    const turnstileVerification = await verifyTurnstileToken(turnstileToken, ip);
+    if (!turnstileVerification.success) {
+        return NextResponse.json({ error: turnstileVerification.error }, { status: 403 });
+    }
 
     // Validate plate
     if (!plate) {

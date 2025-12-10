@@ -195,14 +195,15 @@ body {
     visibility: visible;
   }
 
-  /* Position the printable area at top-left */
+  /* Center the printable area on page */
   .printable-area {
-    position: absolute;
-    left: 0;
-    top: 0;
+    position: fixed !important;
+    top: 0 !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
     width: 100%;
     max-width: 600px;
-    margin: 0 auto;
+    margin: 0;
   }
 
   /* Hide background effects */

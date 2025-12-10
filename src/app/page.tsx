@@ -10,7 +10,7 @@ export default function Home() {
   const [result, setResult] = useState<VehicleData | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const handleSearch = async (plate: string, color: string) => {
+  const handleSearch = async (plate: string, color: string, turnstileToken: string) => {
     setLoading(true);
     setError(null);
     setResult(null);
@@ -25,8 +25,10 @@ export default function Home() {
       const construnctPlate = `${plateSplitted[0]} ${plateSplitted[2]}${plateSplitted[1]}`;
 
 
-      // Use our internal proxy API
-      const res = await fetch(`/api/check?plate=${encodeURIComponent(construnctPlate)}&color=${color}`);
+      // Use our internal proxy API with Turnstile token
+      const res = await fetch(
+        `/api/check?plate=${encodeURIComponent(construnctPlate)}&color=${color}&cf-turnstile-response=${encodeURIComponent(turnstileToken)}`
+      );
       const data = await res.json();
 
       if (!res.ok) {
@@ -38,11 +40,6 @@ export default function Home() {
       }
 
       setResult(data.data || data);
-
-      window.scrollTo({
-        top: 419,
-        behavior: "smooth"
-      });
     } catch (err: unknown) {
       if (err instanceof Error) {
         setError(err.message);
@@ -57,7 +54,7 @@ export default function Home() {
   useEffect(() => {
     if (result) {
       window.scrollTo({
-        top: 419,
+        top: 523,
         behavior: "smooth"
       });
     }
