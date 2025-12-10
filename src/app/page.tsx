@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { CarProfileIcon } from '@phosphor-icons/react';
 import SearchForm from '@/components/SearchForm';
 import ResultCard, { VehicleData } from '@/components/ResultCard';
@@ -38,6 +38,11 @@ export default function Home() {
       }
 
       setResult(data.data || data);
+
+      window.scrollTo({
+        top: 419,
+        behavior: "smooth"
+      });
     } catch (err: unknown) {
       if (err instanceof Error) {
         setError(err.message);
@@ -48,6 +53,15 @@ export default function Home() {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (result) {
+      window.scrollTo({
+        top: 419,
+        behavior: "smooth"
+      });
+    }
+  }, [result]);
 
   return (
     <main className="min-h-screen flex justify-center items-center p-5">
