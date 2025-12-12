@@ -16,7 +16,7 @@ function isAllowedOrigin(origin: string | null): boolean {
     return allowedOrigins.some(allowed => origin === allowed || origin.startsWith(allowed));
 }
 
-export function proxy(request: NextRequest) {
+export function middleware(request: NextRequest) {
     const origin = request.headers.get('origin');
     const response = NextResponse.next();
 
@@ -66,3 +66,4 @@ export function proxy(request: NextRequest) {
 export const config = {
     matcher: '/api/:path*',
 };
+
