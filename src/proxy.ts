@@ -16,7 +16,7 @@ function isAllowedOrigin(origin: string | null): boolean {
     return allowedOrigins.some(allowed => origin === allowed || origin.startsWith(allowed));
 }
 
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
     const origin = request.headers.get('origin');
     const response = NextResponse.next();
 
