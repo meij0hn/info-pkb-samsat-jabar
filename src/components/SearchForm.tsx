@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, forwardRef, useImperativeHandle } from 'react';
 import { MagnifyingGlassIcon, SpinnerIcon, ShieldWarningIcon, XIcon } from '@phosphor-icons/react';
 import { Turnstile, type TurnstileInstance } from '@marsidev/react-turnstile';
 import Cleave from 'cleave.js/react';
@@ -20,7 +20,11 @@ interface SearchFormProps {
     isLoading: boolean;
 }
 
-export default function SearchForm({ onSearch, isLoading }: SearchFormProps) {
+export interface SearchFormHandle {
+    reset: () => void;
+}
+
+const SearchForm = forwardRef<SearchFormHandle, SearchFormProps>(({ onSearch, isLoading }, ref) => {
     const [plate, setPlate] = useState('');
     const [color, setColor] = useState('1'); // Default Black (1)
     const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
@@ -28,6 +32,13 @@ export default function SearchForm({ onSearch, isLoading }: SearchFormProps) {
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
     const plateInputRef = useRef<HTMLInputElement>(null);
     const turnstileRef = useRef<TurnstileInstance>(null);
+
+    useImperativeHandle(ref, () => ({
+        reset: () => {
+            turnstileRef.current?.reset();
+            setTurnstileToken(null);
+        }
+    }));
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -42,10 +53,7 @@ export default function SearchForm({ onSearch, isLoading }: SearchFormProps) {
         }
 
         // Submit with token
-        onSearch(plate, color, turnstileToken);
-        // Reset Turnstile after successful submit for next use
-        turnstileRef.current?.reset();
-        setTurnstileToken(null);
+        await onSearch(plate, color, turnstileToken);
     };
 
     // Handle Turnstile success - proceed with search
@@ -57,11 +65,6 @@ export default function SearchForm({ onSearch, isLoading }: SearchFormProps) {
         // Auto-submit if we were waiting for verification
         if (isVerifying && plate.length >= 3) {
             onSearch(plate, color, token);
-            // Reset for next use
-            setTimeout(() => {
-                turnstileRef.current?.reset();
-                setTurnstileToken(null);
-            }, 100);
         }
     };
 
@@ -179,4 +182,8 @@ export default function SearchForm({ onSearch, isLoading }: SearchFormProps) {
             </form>
         </section>
     );
-}
+});
+
+SearchForm.displayName = 'SearchForm';
+
+export default SearchForm;

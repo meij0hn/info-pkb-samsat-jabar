@@ -1,14 +1,15 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { CarProfileIcon } from '@phosphor-icons/react';
-import SearchForm from '@/components/SearchForm';
+import SearchForm, { SearchFormHandle } from '@/components/SearchForm';
 import ResultCard, { VehicleData } from '@/components/ResultCard';
 
 export default function Home() {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<VehicleData | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const searchFormRef = useRef<SearchFormHandle>(null);
 
   const handleSearch = async (plate: string, color: string, turnstileToken: string) => {
     setLoading(true);
@@ -40,12 +41,15 @@ export default function Home() {
       }
 
       setResult(data.data || data);
+
+
     } catch (err: unknown) {
       if (err instanceof Error) {
         setError(err.message);
       } else {
         setError('Terjadi kesalahan jaringan.');
       }
+      searchFormRef.current?.reset();
     } finally {
       setLoading(false);
     }
@@ -57,6 +61,8 @@ export default function Home() {
         top: 523,
         behavior: "smooth"
       });
+      // Reset Turnstile after successful submit for next use
+      searchFormRef.current?.reset();
     }
   }, [result]);
 
@@ -71,7 +77,7 @@ export default function Home() {
           <p className="text-sm text-muted-foreground">Info Pajak Kendaraan Bermotor Real-Time</p>
         </header>
 
-        <SearchForm onSearch={handleSearch} isLoading={loading} />
+        <SearchForm ref={searchFormRef} onSearch={handleSearch} isLoading={loading} />
 
         {error && (
           <div className="glass-panel border-l-4 border-l-destructive p-4">
