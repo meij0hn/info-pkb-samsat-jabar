@@ -6,8 +6,7 @@ import type { NextRequest } from 'next/server';
 const allowedOrigins = [
     'http://localhost:3000',
     'http://localhost:3001',
-    // Add your production domain here:
-    // 'https://yourdomain.com',
+    'https://pkb-jabar.meijohn.workers.dev',
 ];
 
 // Check if origin is allowed
