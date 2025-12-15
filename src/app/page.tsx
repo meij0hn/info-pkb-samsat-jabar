@@ -27,9 +27,17 @@ export default function Home() {
 
 
       // Use our internal proxy API with Turnstile token
-      const res = await fetch(
-        `/api/check?plate=${encodeURIComponent(construnctPlate)}&color=${color}&cf-turnstile-response=${encodeURIComponent(turnstileToken)}`
-      );
+      const res = await fetch('/api/check', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          plate: construnctPlate,
+          color,
+          turnstileToken,
+        }),
+      });
       const data = await res.json();
 
       if (!res.ok) {

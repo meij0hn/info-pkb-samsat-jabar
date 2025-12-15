@@ -87,7 +87,7 @@ async function verifyTurnstileToken(token: string, ip: string): Promise<{ succes
 }
 
 // ============ MAIN HANDLER ============
-export async function GET(request: Request) {
+export async function POST(request: Request) {
     // Get client IP for rate limiting
     const forwarded = request.headers.get('x-forwarded-for');
     const ip = forwarded ? forwarded.split(',')[0].trim() : 'unknown';
@@ -108,10 +108,16 @@ export async function GET(request: Request) {
         );
     }
 
-    const { searchParams } = new URL(request.url);
-    const plate = searchParams.get('plate');
-    const colorCode = searchParams.get('color') || '1';
-    const turnstileToken = searchParams.get('cf-turnstile-response');
+    let plate, colorCode, turnstileToken;
+
+    try {
+        const body = await request.json();
+        plate = body.plate;
+        colorCode = body.color || '1';
+        turnstileToken = body.turnstileToken; // Consistent naming with client
+    } catch {
+        return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 });
+    }
 
     // Verify Turnstile token
     if (!turnstileToken) {
